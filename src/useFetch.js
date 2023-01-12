@@ -6,8 +6,12 @@ const useFetch = (url) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        // used for aborting the fetch when the component that uses it is unmounted
+        const abortCont = new AbortController();
+
         setTimeout(() => {
-            fetch(url)
+            // we associate the abort controller with the signal property of the fetch
+            fetch(url, { signal: abortCont.signal })
                 .then(response => {
                     if (!response.ok)
                         throw Error('Could not fetch the data for that resource');
@@ -21,10 +25,19 @@ const useFetch = (url) => {
                     setError(null);
                 })
                 .catch(err => {
-                    setError(err.message)
-                    setIsPending(false);
+                    // when we abort, the fetch throws an error and we catch it here
+                    // we don't want it to update the state so we check for it by its name
+                    if (err.name !== 'AbortError') {
+                        setError(err.message)
+                        setIsPending(false);
+                    } else {
+                        console.log('fetch aborted')
+                    }
                 })
         }, 1000);
+
+        // returned cleanup function that fires when the component that uses useEffect unmounts
+        return () => abortCont.abort();
     }, [url]);
 
     return {data, isPending, error}
