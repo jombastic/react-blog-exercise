@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 
 const Create = () => {
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
     const [author, setAuthor] = useState('mario');
     const [isPending, setIsPending] = useState(false);
+    // previously in react-router-dom v5 useHistory
+    const navigate = useNavigate();
 
     const handleSubmit = e => {
         e.preventDefault();
@@ -17,9 +20,11 @@ const Create = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(blog)
         }).then(() => {
-            setIsPending(false);
             console.log('new blog added');
+            setIsPending(false);
+            navigate('/');
         })
+
     }
 
     return (
